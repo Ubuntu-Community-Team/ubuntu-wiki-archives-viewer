@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubuntu Wiki Archive</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Sans:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ubuntu-orange: #E95420;
+            --ubuntu-dark: #333333;
+            --ubuntu-light: #f4f4f5;
+            --ubuntu-gray: #aea79f;
+        }
+        body {
+            margin: 0;
+            font-family: "Ubuntu Sans", system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--ubuntu-light);
+        }
+        
+        #top-nav {
+            background-color: var(--ubuntu-orange);
+            color: white;
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        #top-nav h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        #menu-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: "Ubuntu Sans", sans-serif;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        #menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #main-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #sidebar {
+            width: 350px;
+            background: white;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 5;
+        }
+        #search-container {
+            padding: 20px;
+            background: var(--ubuntu-dark);
+            color: white;
+        }
+        #search-container h3 {
+            margin-top: 0;
+            font-weight: 400;
+            color: var(--ubuntu-gray);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: "Ubuntu Sans", sans-serif;
+            font-size: 16px; 
+        }
+        #article-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        #article-list li {
+            padding: 14px 20px; 
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: background 0.2s;
+        }
+        #article-list li:hover {
+            background-color: #f0f0f0;
+            border-left: 4px solid var(--ubuntu-orange);
+            padding-left: 16px;
+        }
+
+        #viewer-pane {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background: white;
+        }
+        
+        #content-box {
+            line-height: 1.6;
+            color: #222;
+            max-width: 900px;
+            font-size: 1.05rem;
+        }
+        #content-box h1, #content-box h2, #content-box h3 {
+            color: var(--ubuntu-dark);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        #content-box a {
+            color: var(--ubuntu-orange);
+            text-decoration: none;
+            word-break: break-all; 
+        }
+        #content-box a:hover {
+            text-decoration: underline;
+        }
+        #content-box pre {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.95rem;
+        }
+        .wiki-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            display: block;
+            overflow-x: auto; 
+        }
+        .wiki-table th, .wiki-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            min-width: 120px;
+        }
+        .wiki-table th {
+            background-color: var(--ubuntu-light);
+        }
+
+        @media (max-width: 768px) {
+            #menu-toggle {
+                display: block; 
+            }
+            #sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 85%;
+                max-width: 320px;
+                transform: translateX(-100%); 
+                box-shadow: 4px 0 12px rgba(0,0,0,0.15);
+            }
+            #sidebar.open {
+                transform: translateX(0); 
+            }
+            #viewer-pane {
+                padding: 20px; 
+            }
+            #content-box h1 { font-size: 1.8rem; }
+            #content-box h2 { font-size: 1.5rem; }
+            #content-box h3 { font-size: 1.3rem; }
+        }
+        #footer {
+            background-color: #2c2c2c;
+            color: #aea79f;
+            padding: 10px 25px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #444;
+            z-index: 10;
+        }
+        #footer a {
+            color: #f4f4f5;
+            text-decoration: none;
+            margin-left: 15px;
+            transition: color 0.2s;
+        }
+        #footer a:hover {
+            color: var(--ubuntu-orange);
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            #footer {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+                padding: 12px;
+            }
+            #footer div {
+                margin: 0;
+            }
+            #footer a {
+                margin: 0 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-nav">
+        <h1>Ubuntu Wiki Archive</h1>
+        <button id="menu-toggle" onclick="toggleSidebar()">📋 Directory</button>
+    </div>
+
+    <div id="main-container">
+        <div id="sidebar">
+            <div id="search-container">
+                <h3>Directory</h3>
+                <label for="title-search">Search Titles:</label>
+                <input type="text" id="title-search" placeholder="Min. 3 characters..." onkeyup="filterList()">
+                
+                <label for="url-lookup">Legacy URL Lookup:</label>
+                <input type="text" id="url-lookup" placeholder="https://wiki.ubuntu.com/..." onkeyup="lookupUrl(event)">
+            </div>
+            <ul id="article-list">
+                </ul>
+        </div>
+
+        <div id="viewer-pane" onclick="closeSidebarIfOpen()">
+            <h1 id="article-title" style="color: var(--ubuntu-orange); margin-top: 0;">Select an article to view</h1>
+            <div id="content-box">The contents will appear here.</div>
+        </div>
+    </div>
+
+    <script>
+        let indexData = [];
+
+        fetch('index.json')
+            .then(response => response.json())
+            .then(data => {
+                indexData = data;
+                renderList(indexData);
+            })
+            .catch(err => console.error("Error loading index:", err));
+
+        function renderList(items) {
+            const list = document.getElementById('article-list');
+            list.innerHTML = '';
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item.title;
+                li.onclick = () => loadArticle(item);
+                list.appendChild(li);
+            });
+        }
+
+        // Optimized Search
+        function filterList() {
+            const query = document.getElementById('title-search').value.toLowerCase().trim();
+            
+            if (query.length < 3 && query.length > 0) {
+                return; 
+            }
+            
+            if (query.length === 0) {
+                renderList(indexData);
+                return;
+            }
+
+            const filtered = indexData.filter(item => 
+                item.title.toLowerCase().includes(query) || 
+                item.slug.toLowerCase().includes(query)
+            );
+            renderList(filtered);
+        }
+
+        function loadArticle(item) {
+            document.getElementById('article-title').textContent = item.title;
+            const contentBox = document.getElementById('content-box');
+            contentBox.innerHTML = "<em>Loading archive data...</em>";
+            
+            // Automatically close mobile menu drawer on item select
+            document.getElementById('sidebar').classList.remove('open');
+
+            fetch(item.rawUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error("Failed to fetch file");
+                    return response.text();
+                })
+                .then(text => {
+                    contentBox.innerHTML = parseWikiSyntax(text);
+                    // Scroll viewing panel back to top smoothly
+                    document.getElementById('viewer-pane').scrollTop = 0;
+                })
+                .catch(err => {
+                    contentBox.innerHTML = "<span style='color:red;'>Error loading content: " + err.message + "</span>";
+                });
+        }
+
+        function lookupUrl(event) {
+            if (event.key === 'Enter') {
+                const urlInput = document.getElementById('url-lookup').value.trim();
+                let slugToFind = urlInput.split('/').pop();
+                const match = indexData.find(item => item.slug.toLowerCase() === slugToFind.toLowerCase());
+                
+                if (match) {
+                    loadArticle(match);
+                    document.getElementById('url-lookup').value = '';
+                    document.getElementById('title-search').value = match.title;
+                    filterList();
+                } else {
+                    alert("Article not found in the archive.");
+                }
+            }
+        }
+
+        // --- Mobile Menu UX Controls ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function closeSidebarIfOpen() {
+            document.getElementById('sidebar').classList.remove('open');
+        }
+
+        // --- Custom Wiki Syntax Parser ---
+        function parseWikiSyntax(rawContent) {
+            let html = rawContent;
+
+            // Completely strip out historical warning blocks
+            const warningRegex = /\{\|[\s\S]*?(?:'''|<strong>)?Warning(?:'''|<\/strong>)?[\s\S]*?\|\}/gi;
+            html = html.replace(warningRegex, "");
+
+            // Strip unnecessary <nowiki> tags and TOC markers
+            html = html.replace(/<\/?nowiki>/gi, '');
+            html = html.replace(/__TOC__/g, '');
+
+            // Explicit MoinMoin line breaks [[BR]]
+            html = html.replace(/\[\[BR\]\]/gi, '<br>');
+
+            // Code Blocks 
+            html = html.replace(/\{\{\le([\s\S]*?)\}\}\}/g, function(match, code) {
+                return '<pre><code>' + code.replace(/</g, '&lt;').replace(/>/g, '&gt;').trim() + '</code></pre>';
+            });
+
+            // Headings
+            html = html.replace(/^======\s*(.+?)\s*======$/gm, '<h6>$1</h6>');
+            html = html.replace(/^=====\s*(.+?)\s*=====$/gm, '<h5>$1</h5>');
+            html = html.replace(/^====\s*(.+?)\s*====$/gm, '<h4>$1</h4>');
+            html = html.replace(/^===\s*(.+?)\s*===$/gm, '<h3>$1</h3>');
+            html = html.replace(/^==\s*(.+?)\s*==$/gm, '<h2>$1</h2>');
+            html = html.replace(/^=\s*(.+?)\s*=$/gm, '<h1>$1</h1>');
+
+            // Bold and Italics
+            html = html.replace(/'''(.+?)'''/g, '<strong>$1</strong>');
+            html = html.replace(/''(.+?)''/g, '<em>$1</em>');
+
+            // Named Wiki Links
+            html = html.replace(/\[\[(https?:\/\/[^|\]]+)\|([^\]]+)\]\]/g, '<a href="$1" target="_blank">$2</a>');
+            html = html.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '<a href="#$1">$2</a>');
+            
+            // Naked URLs
+            const nakedUrlRegex = /(?<!href=")(?<!src=")(https?:\/\/[^\s<]+)/gi;
+            html = html.replace(nakedUrlRegex, '<a href="$1" target="_blank">$1</a>');
+
+            // Bullet Lists
+            html = html.replace(/^\*\s+(.+)$/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+            // Wiki Tables 
+            html = html.replace(/\{\|([\s\S]*?)\|\}/g, function(match, innerContent) {
+                let tableHtml = '<table class="wiki-table">';
+                let rows = innerContent.split('|-');
+                rows.forEach(row => {
+                    if (row.trim() === '' || row.includes('class="wikitable"')) return;
+                    tableHtml += '<tr>';
+                    let cells = row.split('\n|');
+                    cells.forEach(cell => {
+                        let text = cell.trim();
+                        if (text) {
+                            text = text.replace(/^\|/, '').trim();
+                            tableHtml += `<td>${text}</td>`;
+                        }
+                    });
+                    tableHtml += '</tr>';
+                });
+                tableHtml += '</table>';
+                return tableHtml;
+            });
+
+            // Wrap loose text in paragraphs 
+            let blocks = html.split(/\r?\n\s*\r?\n/);
+            blocks = blocks.map(block => {
+                if (/^</.test(block.trim())) return block; 
+                
+                let cleanParagraph = block.trim().replace(/\r?\n|\r/g, ' ').replace(/\s+/g, ' ');
+                return cleanParagraph ? '<p>' + cleanParagraph + '</p>' : '';
+            });
+
+            return blocks.join('\n');
+        }
+    </script>
+    <div id="footer">
+        <div></div>
+        <div>
+            <a href="https://github.com/ubuntu/wiki-archives" target="_blank" rel="noopener">📦 Ubuntu Wiki Archives</a>
+            <a href="https://github.com/Ubuntu-Community-Team/ubuntu-wiki-archives-viewer/" target="_blank" rel="noopener">🛠️ Wiki Viewer Source Code</a>
+        </div>
+    </div>
+</body>
+</html>
